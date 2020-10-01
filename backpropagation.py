@@ -20,11 +20,18 @@ class layer:
     #dz/dw = a_L-1 = x
 
     def backProp(self, x, z, a, y):
-        dw = np.dot(x, (self.d_softmax(z) * self.d_cost(a,y)).T)
+        dw = np.dot(x, (self.d_softmax(z) * d_cost(a,y)).T)
         self.w -= learning_rate * dw
 
-    def d_cost(self, a_L,y): #dC/da
-        return 2*(a_L-y)
+    def calc_da(self, w, z, a, y):
+        self.da = np.dot(w, self.d_softmax(z) * d_cost(a,y))
+
+    def backProp2(self, x, z, da): #da is dC/da en komt overeen met da van de volgende layer
+        dw = np.dot(x, (self.d_softmax(z) * da).T)
+        self.w -= learning_rate * dw
+
+def d_cost( a_L,y): #dC/da
+    return 2*(a_L-y)
 
 def cost(a_L,y):
     assert float(np.shape(a_L)[0]) == float(np.shape(y)[0])
@@ -38,11 +45,26 @@ y = np.random.rand(2,1)
 l1 = layer(4,2)
 l1.forward(x)
 l1.a = l1.softmax(l1.z)
-print(l1.w)
-print("cost is", cost(l1.a,y))
-print(l1.a)
+l2 = layer(2,2)
+l2.forward(l1.a)
+l2.a = l2.softmax(l2.z)
+
+print ("cost is", cost(l2.a,y))
 for i in range(100000):
-    l1.backProp(x,l1.z,l1.a,y)
+    l2.backProp(l1.a,l2.z,l2.a,y)
+    l2.calc_da(l2.w, l2.z, l2.a,y)
+    l1.backProp2(x, l1.z, l2.da)
     l1.forward(x)
     l1.a = l1.softmax(l1.z)
-print("cost is", cost(l1.a,y))
+    l2.forward(l1.a)
+    l2.a = l2.softmax(l2.z)
+print ("cost is",cost(l2.a,y))
+
+# print(l1.w)
+# print("cost is", cost(l1.a,y))
+# print(l1.a)
+# for i in range(100000):
+#     l1.backProp(x,l1.z,l1.a,y)
+#     l1.forward(x)
+#     l1.a = l1.softmax(l1.z)
+# print("cost is", cost(l1.a,y))
