@@ -19,8 +19,8 @@ class layer:
 
     #dz/dw = a_L-1 = x
 
-    def backProp(self, x, z, a, y):
-        dw = np.dot(x, (self.d_softmax(z) * d_cost(a,y)).T)
+    def backProp(self, x, z, c_func):#voor de laatste layer is c_func d_cost en daarvoor da
+        dw = np.dot(x, (self.d_softmax(z) * c_func).T)
         self.w -= learning_rate * dw
 
     def calc_da(self, w, z, a, y):
@@ -41,19 +41,19 @@ def cost(a_L,y):
 
 
 
-y = np.random.rand(2,1)
-l1 = layer(4,2)
+y = np.random.rand(3,1)
+l1 = layer(4,4)
 l1.forward(x)
 l1.a = l1.softmax(l1.z)
-l2 = layer(2,2)
+l2 = layer(4,3)
 l2.forward(l1.a)
 l2.a = l2.softmax(l2.z)
 
 print ("cost is", cost(l2.a,y))
 for i in range(100000):
-    l2.backProp(l1.a,l2.z,l2.a,y)
+    l2.backProp(l1.a,l2.z,d_cost(l2.a,y))
     l2.calc_da(l2.w, l2.z, l2.a,y)
-    l1.backProp2(x, l1.z, l2.da)
+    l1.backProp(x, l1.z, l2.da)
     l1.forward(x)
     l1.a = l1.softmax(l1.z)
     l2.forward(l1.a)
